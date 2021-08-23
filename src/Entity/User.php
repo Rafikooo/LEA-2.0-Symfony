@@ -7,12 +7,15 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
 #[ApiResource(
-    shortName: "security/users" 
+    shortName: "security/users",
+    denormalizationContext: ["groups" => ["user:write"]],
+    normalizationContext: ["groups" => ["user:read"]]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -25,6 +28,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups ({"user:read", "user:write"})
      */
     private $email;
 
@@ -41,11 +45,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups ({"user:read", "user:write"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups ({"user:read", "user:write"})
      */
     private $surname;
 
@@ -56,13 +62,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups ({"user:read", "user:write"})
      */
     private $phone;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups ({"user:write"})
      */
     private $mobileAppToken;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $active = 0;
 
     public function getId(): ?int
     {
@@ -209,6 +222,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setMobileAppToken(?string $mobileAppToken): self
     {
         $this->mobileAppToken = $mobileAppToken;
+
+        return $this;
+    }
+
+    public function getActive(): ?bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): self
+    {
+        $this->active = $active;
 
         return $this;
     }
